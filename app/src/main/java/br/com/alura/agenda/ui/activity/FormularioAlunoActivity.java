@@ -4,14 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import br.com.alura.agenda.R;
-import br.com.alura.agenda.dao.AlunoDAO;
+import br.com.alura.agenda.database.AgendaDatabase;
+import br.com.alura.agenda.database.dao.AlunoDao;
 import br.com.alura.agenda.model.Aluno;
 
 import static br.com.alura.agenda.ui.activity.ConstantesActivities.CHAVE_ALUNO;
@@ -23,13 +23,20 @@ public class FormularioAlunoActivity extends AppCompatActivity {
     private EditText campoNome;
     private EditText campoTelefone;
     private EditText campoEmail;
-    private final AlunoDAO dao = new AlunoDAO();
+    private AlunoDao dao;
     private Aluno aluno;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_formulario_aluno);
+
+        // instancia da database
+        AgendaDatabase database = AgendaDatabase.getInstance(this);
+
+        // dao instanciada para utilizamors seus métodos
+        dao = database.getRoomAlunoDAO();
+
         inicializacaoDosCampos();
         carregaAluno();
     }
@@ -62,6 +69,7 @@ public class FormularioAlunoActivity extends AppCompatActivity {
         }
     }
 
+    // método que coloca a atual informação do aluno no campo de edição
     private void preencheCampos() {
         campoNome.setText(aluno.getNome());
         campoTelefone.setText(aluno.getTelefone());
@@ -78,12 +86,14 @@ public class FormularioAlunoActivity extends AppCompatActivity {
         finish();
     }
 
+    // findViewById para referienciarmos nossa view
     private void inicializacaoDosCampos() {
         campoNome = findViewById(R.id.activity_formulario_aluno_nome);
         campoTelefone = findViewById(R.id.activity_formulario_aluno_telefone);
         campoEmail = findViewById(R.id.activity_formulario_aluno_email);
     }
 
+    // método que pega o sobrenome digitado na view e coloca no objeto "aluno"
     private void preencheAluno() {
         String nome = campoNome.getText().toString();
         String telefone = campoTelefone.getText().toString();
