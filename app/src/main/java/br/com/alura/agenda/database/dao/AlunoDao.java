@@ -16,7 +16,8 @@ public interface AlunoDao {
 
     // @Insert para informar que salvaremos um "aluno" na nossa database
     @Insert
-    void salva(Aluno aluno);
+    // o "long" faz com que o Room devolva automaticamente o id criado
+    Long salva(Aluno aluno);
 
     // @Query para informar que buscaremos um array de dados
     @Query("SELECT * FROM aluno")

@@ -4,6 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import br.com.alura.agenda.model.TipoTelefone;
+
+import static br.com.alura.agenda.model.TipoTelefone.FIXO;
+
 
 // classe para isolar as migrations
 class AgendaMigrations {
@@ -37,5 +41,53 @@ class AgendaMigrations {
             database.execSQL(("ALTER TABLE Aluno ADD COLUMN momentoDeCadastro INTEGER"));
         }
     };
-    static final Migration[] TODAS_MIGRATIONS = {MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4};
+    private static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // Cria nova tabela com as informações desejadas
+            database.execSQL("CREATE TABLE IF NOT EXISTS `Aluno_novo` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+                    " `nome` TEXT, `telefoneFixo` TEXT, `email` TEXT," +
+                    " `momentoDeCadastro` INTEGER," +
+                    " `telefoneCelular` TEXT)");
+            // Copiar dados da tabela antiga para a nova
+            database.execSQL("INSERT INTO Aluno_novo (id, nome, telefoneFixo, email, momentoDeCadastro) " +
+                    "SELECT id, nome, telefone, email, momentoDeCadastro FROM Aluno");
+            // Remove tabela antiga
+            database.execSQL("DROP TABLE Aluno");
+            //Renomear a tabela nova com o nome da tabela antiga
+            database.execSQL("ALTER TABLE Aluno_novo RENAME TO Aluno");
+        }
+    };
+    private static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // Cria nova tabela com as informações desejadas
+            database.execSQL("CREATE TABLE IF NOT EXISTS `Aluno_novo` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+                    " `nome` TEXT," +
+                    " `email` TEXT," +
+                    " `momentoDeCadastro` INTEGER)");
+            // Copiar dados da tabela antiga para a nova
+            database.execSQL("INSERT INTO Aluno_novo (id, nome, email, momentoDeCadastro) " +
+                    "SELECT id, nome, email, momentoDeCadastro FROM Aluno");
+            // Cria nova tabela com as informações desejadas
+            database.execSQL("CREATE TABLE IF NOT EXISTS `Telefone` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+                    " `numero` TEXT," +
+                    " `tipo` TEXT," +
+                    " `alunoId` INTEGER NOT NULL)");
+            // Copiar dados da tabela antiga para a nova
+            database.execSQL("INSERT INTO Telefone (numero, alunoId) " +
+                    "SELECT telefoneFixo, id FROM Aluno");
+            // indica que tudo vai ser do tipo TipoTelefone.FIXO
+            database.execSQL("UPDATE Telefone SET tipo = ?", new TipoTelefone[] {FIXO});
+            // Remove tabela antiga
+            database.execSQL("DROP TABLE Aluno");
+            //Renomear a tabela nova com o nome da tabela antiga
+            database.execSQL("ALTER TABLE Aluno_novo RENAME TO Aluno");
+        }
+    };
+    static final Migration[] TODAS_MIGRATIONS = {MIGRATION_1_2, MIGRATION_2_3,
+            MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6};
 }
